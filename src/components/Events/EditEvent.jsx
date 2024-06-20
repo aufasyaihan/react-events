@@ -2,8 +2,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import Modal from "../UI/Modal.jsx";
 import EventForm from "./EventForm.jsx";
-import { useQuery } from "@tanstack/react-query";
-import { fetchEvent } from "../../util/http.js";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { fetchEvent, queryClient, updateEvent } from "../../util/http.js";
 import LoadingIndicator from "../UI/LoadingIndicator.jsx";
 import ErrorBlock from "../UI/ErrorBlock.jsx";
 
@@ -14,8 +14,23 @@ export default function EditEvent() {
     queryKey: ["events", id],
     queryFn: ({ signal }) => fetchEvent({ signal, id }),
   });
+  const {
+    mutate,
+    isPending: isUpdating,
+    isError: isUpdateError,
+    error: updateError,
+  } = useMutation({
+    mutationFn: updateEvent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      navigate("../");
+    },
+  });
 
-  function handleSubmit(formData) {}
+  function handleSubmit(formData) {
+    mutate({ event: formData, id });
+  }
+
   function handleClose() {
     navigate("../");
   }
@@ -47,14 +62,28 @@ export default function EditEvent() {
 
   if (data) {
     content = (
-      <EventForm inputData={data} onSubmit={handleSubmit}>
-        <Link to="../" className="button-text">
-          Cancel
-        </Link>
-        <button type="submit" className="button">
-          Update
-        </button>
-      </EventForm>
+      <>
+        {isUpdateError && (
+          <ErrorBlock
+            title="Error"
+            message={updateError.info?.message || "Failed to update event"}
+          />
+        )}
+        <EventForm inputData={data} onSubmit={handleSubmit}>
+          {isUpdating ? (
+            <LoadingIndicator />
+          ) : (
+            <>
+              <Link to="../" className="button-text">
+                Cancel
+              </Link>
+              <button type="submit" className="button">
+                Update
+              </button>
+            </>
+          )}
+        </EventForm>
+      </>
     );
   }
 
