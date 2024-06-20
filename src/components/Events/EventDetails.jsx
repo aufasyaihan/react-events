@@ -1,12 +1,15 @@
 import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
 
 import Header from "../Header.jsx";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { deleteEvent, fetchEvent, queryClient } from "../../util/http.js";
 import LoadingIndicator from "../UI/LoadingIndicator.jsx";
 import ErrorBlock from "../UI/ErrorBlock.jsx";
+import Modal from "../UI/Modal.jsx";
 
 export default function EventDetails() {
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
   const { data, isPending, isError, error } = useQuery({
@@ -30,6 +33,10 @@ export default function EventDetails() {
     mutate({ id });
   }
 
+  function handleModal() {
+    setIsDeleting((prevState) => !prevState);
+  }
+
   const formattedDate = new Date(data?.date).toLocaleDateString("id-ID", {
     year: "numeric",
     month: "short",
@@ -38,6 +45,21 @@ export default function EventDetails() {
   return (
     <>
       <Outlet />
+      {isDeleting && (
+        <Modal onClose={handleModal}>
+          <article>
+            <h1>Are you sure?</h1>
+            <div className="buttons">
+              <button className="button-text" onClick={handleModal}>
+                No
+              </button>
+              <button className="button" onClick={() => handleDelete(id)}>
+                Yes
+              </button>
+            </div>
+          </article>
+        </Modal>
+      )}
       <Header>
         <Link to="/events" className="nav-item">
           View all Events
@@ -56,7 +78,7 @@ export default function EventDetails() {
             <header>
               <h1>{data?.title}</h1>
               <nav>
-                <button onClick={() => handleDelete(id)}>Delete</button>
+                <button onClick={handleModal}>Delete</button>
                 <Link to="edit">Edit</Link>
               </nav>
             </header>
