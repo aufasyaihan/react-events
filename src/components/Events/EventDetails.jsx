@@ -26,6 +26,12 @@ export default function EventDetails() {
   function handleDelete(id) {
     mutate({ id });
   }
+
+  const formattedDate = new Date(data?.date).toLocaleDateString("id-ID", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
   return (
     <>
       <Outlet />
@@ -52,12 +58,15 @@ export default function EventDetails() {
               </nav>
             </header>
             <div id="event-details-content">
-              <img src={`http://localhost:3000/${data?.image}`} alt="" />
+              <img
+                src={`http://localhost:3000/${data?.image}`}
+                alt={data?.title}
+              />
               <div id="event-details-info">
                 <div>
                   <p id="event-details-location">{data?.location}</p>
                   <time dateTime={`Todo-DateT$Todo-Time`}>
-                    {data?.date} @ {data?.time}
+                    {formattedDate} @ {data?.time}
                   </time>
                 </div>
                 <p id="event-details-description">{data?.description}</p>
