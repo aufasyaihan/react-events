@@ -18,7 +18,10 @@ export default function EventDetails() {
   const { mutate } = useMutation({
     mutationFn: deleteEvent,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] }); // invalidate the events query and set it to stale then the query can be refetched
+      queryClient.invalidateQueries({
+        queryKey: ["events"],
+        refetchType: "none", // prevent the query from being refetched
+      }); // invalidate the events query and set it to stale then the query can be refetched
       navigate("../");
     },
   });
