@@ -16,7 +16,11 @@ export default function NewEventsSection() {
   let content;
 
   if (isPending) {
-    content = <LoadingIndicator />;
+    content = (
+      <div className="center">
+        <LoadingIndicator />
+      </div>
+    );
   }
 
   if (isError) {

@@ -89,7 +89,11 @@ export default function EventDetails() {
         />
       )}
       <article id="event-details">
-        {isPending && <LoadingIndicator />}
+        {isPending && (
+          <div className="center">
+            <LoadingIndicator />
+          </div>
+        )}
         {data && (
           <>
             <header>
