@@ -14,21 +14,26 @@ export default function EditEvent() {
     queryKey: ["events", id],
     queryFn: ({ signal }) => fetchEvent({ signal, id }),
   });
-  const {
-    mutate,
-    isPending: isUpdating,
-    isError: isUpdateError,
-    error: updateError,
-  } = useMutation({
+  const { mutate } = useMutation({
     mutationFn: updateEvent,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["events"] });
-      navigate("../");
+    onMutate: async (data) => {
+      const newEvent = data.event;
+      await queryClient.cancelQueries({ queryKey: ["events", id] }); // cancel the previous query
+      const prevEvent = queryClient.getQueryData(["events", id]); // get the previous data
+      queryClient.setQueryData(["events", id], newEvent); // update the query data
+      return { prevEvent };
+    }, // onMutate is called while the mutation is executed
+    onError: (error, data, context) => {
+      queryClient.setQueryData(["events", id], context.prevEvent); // rollback the query data
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["events"], id); // invalidate the events query and set it to stale then the query can be refetched
     },
   });
 
   function handleSubmit(formData) {
     mutate({ event: formData, id });
+    navigate("../");
   }
 
   function handleClose() {
@@ -63,25 +68,13 @@ export default function EditEvent() {
   if (data) {
     content = (
       <>
-        {isUpdateError && (
-          <ErrorBlock
-            title="Error"
-            message={updateError.info?.message || "Failed to update event"}
-          />
-        )}
         <EventForm inputData={data} onSubmit={handleSubmit}>
-          {isUpdating ? (
-            <LoadingIndicator />
-          ) : (
-            <>
-              <Link to="../" className="button-text">
-                Cancel
-              </Link>
-              <button type="submit" className="button">
-                Update
-              </button>
-            </>
-          )}
+          <Link to="../" className="button-text">
+            Cancel
+          </Link>
+          <button type="submit" className="button">
+            Update
+          </button>
         </EventForm>
       </>
     );
