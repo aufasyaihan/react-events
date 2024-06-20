@@ -341,12 +341,6 @@ ul {
   color: #b6cad5;
 }
 
-.buttons{
-  display: flex;
-  gap: 1rem;
-  justify-content: end;
-}
-
 .button {
   font: inherit;
   cursor: pointer;
